@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: api
-  version: 0.0.6
+  version: 0.0.7
 paths:
   /prices/:
     post:
@@ -1004,5 +1004,5 @@ components:
       type: http
       scheme: bearer
 servers:
-  - url: https://default.corrily.com/v1
+  - url: https://default.corrily.com/mainapi/v1
     description: Production
