@@ -1,0 +1,1008 @@
+openapi: 3.0.1
+info:
+  title: api
+  version: 0.0.6
+paths:
+  /prices/:
+    post:
+      description: >
+        Calculate a localized or optimized price for your service or product
+        based on the customer's location and other characteristics.
+
+
+        *Usage*
+
+        The first time that you call this endpoint for a given IP address and
+        user ID, 
+
+        Corrily calculates the price. On subsequent calls (with the same IP
+        address and user ID), Corrily returns the original calculated price.
+
+        See [Calculate price API
+        examples](https://docs.corrily.com/pricing/calculate-price-api-examples) 
+
+        for examples of how this endpoint is commonly used.
+
+
+        *Price localization*
+
+        If you're only using Corrily for price localization (i.e. you are not
+        doing price optimization), 
+
+        this is the endpoint that you call in order to get localized prices.
+
+
+        *Price optimization*
+
+        If you're also doing price optimization, this is the endpoint you call
+        to get optimized prices.
+
+        As explained in [Price optimization
+        overview](https://docs.corrily.com/pricing/price-optimization-overview), 
+
+        Corrily either returns an experimental price or a control price which
+        will be used to benchmark the experimental prices.
+
+
+        Experimental prices are affected by the following factors:
+          - The (potential) customer's location, which is inferred from their IP address
+          - Any user features that you have provided
+          - The outcomes of previous price experiments
+          - The upper and lower bounds that you defined in the Corrily Dashboard
+      operationId: PriceService.calculate
+      tags:
+        - Price
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculatePriceResponse'
+              examples:
+                Example1:
+                  value:
+                    success: true
+                    user_id: user123
+                    country: SG
+                    currency: SGD
+                    currency_symbol: S$
+                    products:
+                      monthly:
+                        price: 27
+                        price_usd: 20.05936
+                        interval: monthly
+                        interval_count: 1
+                        display:
+                          price: S$ 27
+                          reference_interval_price: S$ 27
+                          price_with_baseline_strike: S$ 27
+                          discount_to_baseline: 0
+                        integrations:
+                          stripe:
+                            currency: SGD
+                            amount: 2700
+                            formatted: S$ 27
+                      annual:
+                        price: 144
+                        price_usd: 106.98325786308372
+                        interval: year
+                        interval_count: 1
+                        display:
+                          price: S$ 144
+                          reference_interval_price: S$ 12
+                          price_with_baseline_strike: S$ 12
+                          discount_to_baseline: 0
+                        integrations:
+                          stripe:
+                            currency: SGD
+                            amount: 14400
+                            formatted: S$ 144
+                        coupon:
+                          id: coupon_id_392
+                          type: percentage
+                          value: 10
+                          coupon_source: chargebee
+                          external_coupon_id: chargebee_coupon_392
+                          currency_code: USD
+                          valid_till: '2022-02-07 15:49:49'
+                          display:
+                            local_currency_symbol: €
+                            interval_local_price_formatted: 9€
+                            local_price_formatted: 9€
+                            usd_price_formatted: 11
+                            local_price_formatted_with_baseline_strike: 9 €
+                            pct_discount_to_baseline: 0
+                    variants:
+                      experimented_on: true
+      summary: Calculate price
+      security: &ref_0
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+                  description: >-
+                    A [User ID](https://docs.corrily.com/users/01_users). Only
+                    required if no `ip` is provided and `get_ip_from_request` is
+                    `false`.
+                products:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ProductId'
+                  description: >
+                    The product IDs that you want to calculate prices for. 
+
+                    In general, you probably want to include the product IDs for
+                    all the product offerings that you intend to show your
+                    visitor. 
+
+                    The response from Corrily will contain the display price for
+                    each product. 
+
+                    For example, if you provide `["monthly", "annual"]`, 
+
+                    Corrily returns price data for your `monthly` and `annual`
+                    products. 
+
+                    Product IDs are created by Corrily when you set up your
+                    Corrily account. Email
+                    [support@corrily.com](mailto:support@corrily.com) if you
+                    don’t know yours.
+                ip:
+                  type: string
+                  description: >
+                    An IPv4 or IPv6 address. 
+
+                    Corrily uses this as the user ID if no user_id is provided. 
+
+                    ip is only required if no user_id is provided and
+                    `get_ip_from_request` is false. 
+
+                    Examples: `187.106.3.73` (IPv4),
+                    `2804:14d:ac91:8286:efcb:851f:b59f:fffc` (IPv6).
+                get_ip_from_request:
+                  type: boolean
+                  description: >
+                    If true, Corrily sources the user's IP from this request. 
+
+                    `get_ip_from_request` therefore only works correctly when
+                    the Corrily API request is made from a client device.
+                country:
+                  $ref: '#/components/schemas/Country'
+                  description: >
+                    A two-letter (Alpha-2) [ISO 3166 country
+                    code](https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes#Current_ISO_3166_country_codes).
+
+                    Example: `US`
+                features:
+                  $ref: '#/components/schemas/PriceFeatures'
+                  description: >
+                    An object containing key-value pairs of arbitrary strings
+                    that represent features of this user which may affect their
+                    optimal price. 
+
+                    See [User
+                    features](https://docs.corrily.com/users/02_user-features). 
+
+                    Example: `{"platform": "ios"}`
+                integrations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Integration'
+                  description: >
+                    The payment gateways to return integration objects for.
+                    Accepted values: `stripe`, `paypal`, `chargebee`
+                currency:
+                  $ref: '#/components/schemas/Currency'
+                  description: >
+                    A currency you wish the price to be tied to. Currencies do
+                    not need to match the passed country. 
+
+                    For example, it is possible to return a price in EUR for
+                    someone based in the Unites Sates. 
+
+                    Note that the country-adjusted price will be returned,
+                    regardless of the currency set.
+                override:
+                  type: boolean
+                  description: >
+                    Will override any previously saved price for a user and
+                    instead return a new price. 
+
+                    Both price amount and currency will be recomputed.
+                override_currency:
+                  type: boolean
+                  description: >
+                    Will override the currency of any previously saved price and
+                    instead return the price in the currency provided. 
+
+                    If set to `true`, a `currency` param must be passed. Unlike
+                    `override` the price amount will not be recomputed.
+                run_experiment:
+                  type: boolean
+                  description: If set to false, will make sure no experiment is run.
+                coupons:
+                  $ref: '#/components/schemas/Coupons'
+                  description: >
+                    Optional product id to coupon id mapping to explicitly
+                    specify the coupon to be applied in the pricing.
+
+                    Coupons feature needs to be enabled for this. 
+
+                    example `{"product_id_1": "coupon_id_1"}`. Multiple coupons
+                    can be applied by a comma-delimited string, for example:
+                    `{"product_id_1": "coupon_id_1,coupon_id2"}`
+            examples:
+              Example1:
+                value:
+                  user_id: 193.37.32.232
+                  products:
+                    - product456
+                  ip: 193.37.32.232
+                  get_ip_from_request: true
+                  country: US
+                  integrations:
+                    - stripe
+                  currency: USD
+                  override: true
+                  run_experiment: true
+  /subscriptions/:
+    post:
+      description: Notify Corrily that one of your customers has started a subscription.
+      operationId: SubscriptionService.create
+      tags:
+        - Subscription
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateSubscriptionResponse'
+              examples:
+                Example1:
+                  value:
+                    properties:
+                      message: >-
+                        [dev=False] subscription record
+                        97#user123#stripe#origin789 was written.
+                      success: true
+                      record: null
+                      origin: stripe
+                      type: subscription
+                      latest_event_timestamp: 1628549872
+                      latest_event_id: corrily_evt_1628549872
+                      corrily_product_id: 122
+                      org_id: 97
+                      origin_id: origin789
+                      user_id: user123
+                      created: 1628548983
+                      interval: month
+                      interval_count: 1
+                      status: active
+                      cancel_at: null
+                      canceled_at: null
+                      trial_start: null
+                      trial_end: null
+                      currency: null
+                      amount: null
+                      amount_usd: null
+                      amount_usd_monthly: null
+      summary: Create subscription
+      security: *ref_0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: The amount (price) of the subscription.
+                  example: 0
+                country:
+                  $ref: '#/components/schemas/Country'
+                  description: Users's two-letter ISO3166 country code.
+                created:
+                  type: integer
+                  description: >-
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the subscription was created. This timestamp
+                    should represent when the subscription was initialized,
+                    regardless of the status of the subscription during the
+                    initialization. It's rare to need to update created after
+                    initially setting it.
+                  example: 0
+                currency:
+                  type: string
+                  description: >-
+                    The three-letter
+                    ([ISO4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes))
+                    currency code.
+                  example: USD
+                origin:
+                  $ref: '#/components/schemas/Integration'
+                  description: The payment gateway that handled the subscription.
+                origin_id:
+                  type: string
+                  description: >-
+                    A unique identifier for the subscription. This can be the ID
+                    that the payment gateway assigned to the subscription.
+                  example: string
+                product:
+                  type: string
+                  description: >
+                    A product ID string or a payment gateway integration
+                    object. 
+
+                    Product IDs are created by Corrily when you set up your
+                    Corrily account. 
+
+                    Email [support@corrily.com](mailto:support@corrily.com) if
+                    you don't know them. 
+
+                    See the response of the [calculate
+                    price](https://docs.corrily.com/calculate-price) endpoint
+                    for an example of the structure of integration objects.
+                  example: 'Unknown Type: mixed type'
+                status:
+                  $ref: '#/components/schemas/SubscriptionStatus'
+                  description: The status of the subscription.
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+                cancel_at:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the subscription will be canceled. 
+
+                    In other words, the customer will no longer have access to
+                    your service after this time. 
+
+                    This parameter should only be provided when `status` is set
+                    to `canceled`.
+                canceled_at:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when customer expressed their intent to cancel. 
+
+                    This parameter should only be provided when status is set to
+                    canceled.
+                trial_end:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the trial subscription ends.
+
+                    This parameter should only be provided when status is set to
+                    trialing.
+                trial_start:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the trial subscription begins.
+
+                    This parameter should only be provided when status is set to
+                    trialing.
+              required:
+                - amount
+                - created
+                - currency
+                - origin
+                - origin_id
+                - product
+                - status
+                - user_id
+            examples:
+              Example1:
+                value:
+                  amount: 0
+                  country: US
+                  created: 0
+                  currency: USD
+                  origin: stripe
+                  origin_id: string
+                  product: 'Unknown Type: mixed type'
+                  status: trialing
+                  user_id: user123
+                  cancel_at: 0
+                  canceled_at: 0
+                  trial_end: 0
+                  trial_start: 0
+  /subscriptions/{user_id}/{origin}/{origin_id}:
+    get:
+      description: Retrieve the details of a single subscription for a single customer.
+      operationId: SubscriptionService.get
+      tags:
+        - Subscription
+      parameters:
+        - name: origin
+          in: path
+          description: The payment gateway that handled the subscription.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Integration'
+          examples:
+            Example1:
+              value: paypal
+        - name: origin_id
+          in: path
+          description: >
+            A unique identifier for the subscription. 
+
+            This can be the ID that the payment gateway assigned to the
+            subscription.
+          required: true
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: 573917313bb
+        - name: user_id
+          in: path
+          description: >-
+            The [User ID](https://docs.corrily.com/users/user-characteristics)
+            that you provided when you [created the
+            subscription](https://docs.corrily.com/api-reference/create-subscription).
+          required: true
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: user123
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSubscriptionResponse'
+              examples:
+                Example1:
+                  value:
+                    success: true
+                    subscription:
+                      corrily_product_id2: 122
+                      latest_event_id: corrily_evt_1628549872
+                      latest_event_timestamp: 1628549872
+                      org_id: 97
+                      origin: stripe
+                      origin_id: origin789
+                      type: subscription
+                      created: 1628548983
+                      interval: month
+                      interval_count: 1
+                      status: active
+                      user_id: user123
+      summary: Get subscription
+      security: *ref_0
+    post:
+      description: Notify Corrily that a subscription has changed.
+      operationId: SubscriptionService.update
+      tags:
+        - Subscription
+      parameters:
+        - name: origin
+          in: path
+          description: The payment gateway that handled the subscription.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Integration'
+          examples:
+            Example1:
+              value: paypal
+        - name: origin_id
+          in: path
+          description: >
+            A unique identifier for the subscription. 
+
+            This can be the ID that the payment gateway assigned to the
+            subscription.
+          required: true
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: 573917313bb
+        - name: user_id
+          in: path
+          description: >-
+            The [User ID](https://docs.corrily.com/users/user-characteristics)
+            that you provided when you [created the
+            subscription](https://docs.corrily.com/api-reference/create-subscription).
+          required: true
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: user123
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateSubscriptionResponse'
+              examples:
+                Example1:
+                  value:
+                    message: '[dev=False] subscription record was written.'
+                    success: true
+                    record:
+                      origin: stripe
+                      type: subscription
+                      latest_event_timestamp: 1628609045
+                      latest_event_id: corrily_evt_1628609045
+                      corrily_product_id: 122
+                      org_id: 97
+                      origin_id: o123
+                      user_id: u123
+                      created: null
+                      interval: month
+                      interval_count: 1
+                      status: active
+                      cancel_at: null
+                      canceled_at: null
+                      trial_start: null
+                      trial_end: null
+                      currency: null
+                      amount: null
+                      amount_usd: null
+                      amount_usd_monthly: null
+      summary: Update subscription
+      security: *ref_0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: The amount (price) of the subscription.
+                cancel_at:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the subscription will be canceled. 
+
+                    In other words, the customer will no longer have access to
+                    your service after this time. 
+
+                    This parameter should only be provided when status is set to
+                    canceled.
+                canceled_at:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when customer expressed their intent to cancel. 
+
+                    This parameter should only be provided when status is set to
+                    canceled.
+                created:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the subscription was created. 
+
+                    This timestamp should represent when the subscription was
+                    initialized, regardless of the status of the subscription
+                    during the initialization. 
+
+                    It's rare to need to update created after initially setting
+                    it.
+                currency:
+                  type: string
+                  description: >-
+                    The three-letter ([ISO
+                    4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes))
+                    currency code.
+                status:
+                  $ref: '#/components/schemas/SubscriptionStatus'
+                  description: The status of the subscription.
+                trial_start:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the trial subscription begins. 
+
+                    This parameter should only be provided when `status` is set
+                    to `trialing`.
+                trial_end:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the trial subscription ends.
+
+                    This parameter should only be provided when `status` is set
+                    to `trialing`.
+            examples:
+              Example1:
+                value:
+                  amount: 0
+                  cancel_at: 0
+                  canceled_at: 0
+                  created: 0
+                  currency: USD
+                  status: active
+                  trial_start: 0
+                  trial_end: 0
+  /identify/:
+    post:
+      description: |
+        Link IPs to users and update user features.
+        The identify endpoint serves three purposes:
+          1. It can be used to pass user-level features after (or before) a price has already been tied to them using the [main price endpoint](https://docs.corrily.com/api-reference/api-reference/calculate-price).
+          2. It can be used to link IPs to user_ids so that prices persist to a user as they see a price -> login in -> check the price again.
+          3. It is used during mobile integrations to inform Corrily about original [Apple](https://docs.corrily.com/integrations/02_apple-iap-integration) and [Google](https://docs.corrily.com/integrations/03_google-iap-integration) purchase IDs.
+      operationId: UserService.identify
+      tags:
+        - User
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdentifyCallResponse'
+              examples:
+                Example1:
+                  value:
+                    status: ok
+      summary: Identify Call
+      security: *ref_0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+                ip:
+                  type: string
+                  description: >-
+                    An IP you wish to tie the user to. For more information read
+                    our [anonymous users
+                    guide](https://docs.corrily.com/users/03_handling-anonymous-users).
+                features:
+                  description: >-
+                    An object containing arbitrary key-value pairs that
+                    represent characteristics of this user which may affect
+                    their optimal price. The keys can be any valid JSON key. The
+                    values can be strings, integers, or floats.
+                apple_original_transaction_id:
+                  type: string
+                  description: >-
+                    Pass an `original_transaction_id` for a user when they
+                    purchase an IAP product. (Note that in the backend, this
+                    will not overwrite any previously stored transaction IDs for
+                    this user).
+                google_purchase_token:
+                  type: string
+                  description: >-
+                    Pass an `purchaseToken` for a user when they purchase an
+                    in-app product. (Note that in the backend, this will not
+                    overwrite any previously stored purchase tokens for this
+                    user).
+              required:
+                - user_id
+            examples:
+              Example1:
+                value:
+                  user_id: user123
+                  features:
+                    source: youtube
+components:
+  schemas:
+    UserId:
+      type: string
+    ProductId:
+      type: string
+    CouponId:
+      type: string
+    CountryPrice:
+      type: object
+      properties:
+        country:
+          $ref: '#/components/schemas/Country'
+        local_currency:
+          type: number
+          format: double
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - country
+        - local_currency
+        - currency
+    Country:
+      type: string
+      enum:
+        - US
+        - CA
+        - SG
+        - IT
+    Currency:
+      type: string
+      enum:
+        - USD
+        - SGD
+        - EUR
+    Interval:
+      type: string
+      enum:
+        - day
+        - week
+        - monthly
+        - year
+        - one-time
+    Integration:
+      type: string
+      enum:
+        - stripe
+        - paypal
+        - chargebee
+    CalculatePriceResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether or not the request completed successfully.
+        user_id:
+          $ref: '#/components/schemas/UserId'
+          description: >-
+            The user ID that you provided when you called calculate price, or
+            the user's IP address (if you did not provide a user ID).
+        country:
+          $ref: '#/components/schemas/Country'
+          description: >-
+            The country that the price data is associated to. If you did not
+            specify a country when calling calculate price, the country value
+            provided here in the response is inferred from the user's IP
+            address.
+        currency:
+          $ref: '#/components/schemas/Currency'
+          description: >
+            The currency that the price data is associated to.
+
+            Tip: check if `products`. `{id}.display.price` meets your needs
+            before manually constructing a display price with this field.
+        currency_symbol:
+          type: string
+          description: >
+            The currency symbol that the price data is associated to.
+
+            Tip: check if `products.{id}.display.price` meets your needs before
+            manually constructing a display price with this field.
+        products:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Product'
+          description: >
+            The price data for each of the products that you specified when you
+            called calculate price. 
+
+            The placeholder `{id}` below represents your product ID(s). 
+
+            See [Setup](https://docs.corrily.com/basics/setup) to learn how to
+            create product IDs.
+        variants:
+          $ref: '#/components/schemas/Variants'
+          description: >
+            Price experimentation metadata. 
+
+            If you are not doing price experimentation, you can ignore this
+            object.
+    Variants:
+      type: object
+      description: |
+        Price experimentation metadata. 
+        If you are not doing price experimentation, you can ignore this object.
+      properties:
+        experimented_on:
+          type: boolean
+          description: Whether or not this response contains experimental prices.
+        experiment_id:
+          type: integer
+          description: The ID of this experiment. An id of `0` means no experiment was run.
+        experiment_type:
+          $ref: '#/components/schemas/ExperimentType'
+        products_to_select:
+          type: array
+          items:
+            type: string
+          description: >-
+            In the case of a `packaging` experiment, the product API IDs to pick
+            from the `product` object of the response to show to users.
+        treatment_group:
+          $ref: '#/components/schemas/TreatmentGroup'
+          description: >-
+            The experiment arm identifier, equal to `baseline` if experiment is
+            run but baseline arm was selected.
+    TreatmentGroup:
+      type: string
+      enum:
+        - baseline
+    ExperimentType:
+      type: string
+      enum:
+        - price
+        - packaging
+        - 'null'
+    Coupons:
+      type: object
+      additionalProperties:
+        type: string
+      description: >
+        Explicitly specify the coupon to be applied in the pricing.
+
+        Coupons feature needs to be enabled for this. 
+
+        Example `{"product_id_1": "coupon_id_1"}`. 
+
+        Multiple coupons can be applied by a comma-delimited string, for
+        example: `{"product_id_1": "coupon_id_1,coupon_id2"}`
+    PriceFeatures:
+      type: object
+      additionalProperties:
+        type: string
+      description: >
+        You can provide whatever keys and values you want. 
+
+        The keys and values have no intrinsic meaning to Corrily. 
+
+        To Corrily these are simply labels for training its AI models. For
+        example, suppose that you provide a platform
+    Product:
+      type: object
+      properties:
+        price:
+          type: number
+          format: double
+          description: >
+            A float version of your price, in case you want to do some custom
+            formatting of the price.
+
+            Tip: check if `products.{id}.display.price` meets your needs before
+            manually constructing a display price with this field.
+        price_usd:
+          type: number
+          format: double
+          description: The current value of products.{id}.price in United States dollars.
+        interval:
+          $ref: '#/components/schemas/Interval'
+          description: The billing interval of this product.
+        interval_count:
+          type: integer
+        display:
+          $ref: '#/components/schemas/PriceDisplay'
+          description: The price data, formatted in various ways for display to your user.
+        integrations:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Gateway'
+        coupon: {}
+    Gateway:
+      type: object
+      properties:
+        currency:
+          $ref: '#/components/schemas/Currency'
+          description: >
+            The currency that `products.{id}.integrations.{gateway}.amount` is
+            priced in. 
+
+            If this currency is not the same as the top-level `currency` value
+            in this response (the “local currency”), it means that the payment
+            gateway does not accept the local currency.
+        amount:
+          type: number
+          format: double
+          description: >
+            The amount that you should pass to the payment gateway when creating
+            the subscription or charge. 
+
+            Many payment gateways use [smallest-unit currency
+            format](https://docs.corrily.com/payment-gateways/integration-guide#map-smallest-unit-currency-format-to-decimal-format)
+            in which case this value will be an integer.
+        formatted:
+          type: string
+          description: >
+            As mentioned in `products.{id}.integrations.{gateway}.currency`,
+            sometimes a payment gateway doesn't support your user's local
+            currency. 
+
+            If that's the case, then
+            `products.{id}.integrations.{gateway}.formatted` provides the
+            equivalent price in a currency that the payment gateway does
+            support. 
+
+            This field is similar to `products.{id}.display.price` in that it
+            will be formatted in a way that your user will quickly understand.
+    PriceDisplay:
+      type: object
+      properties:
+        price:
+          type: string
+          description: >
+            The price data, formatted in a way that your user will quickly
+            understand. 
+
+            This is usually a combination of `currency`, `currency_symbol`, and
+            `products.{id}.price`. 
+
+            `products.{id}.price` will use commas or periods as separators if
+            that is the local custom. 
+
+            Example: `JP¥2,200`
+        reference_interval_price:
+          type: string
+          description: >-
+            The default price for the product. You can set this default price in
+            your Corrily Dashboard.
+        price_with_baseline_strike:
+          type: string
+          description: >
+            If products.{id}.price is an experimental price, this field contains
+            the baseline price striked out, followed by the experimental price. 
+
+            You may want to present this to your user to help them see that they
+            would be paying less than normal customers. 
+
+            Example: $̶3̶4̶ $19
+        discount_to_baseline:
+          type: number
+          format: double
+          description: >
+            If `products.{id}.price` is an experimental price, this field
+            contains the percentage discount of the experimental price compared
+            to the baseline price. 
+
+            For example, if the baseline price is 34 and the experimental price
+            is 19, the discount is about 44%: 1 - (19 ÷ 34)) × 100
+    CreateSubscriptionResponse: {}
+    GetSubscriptionResponse: {}
+    UpdateSubscriptionResponse: {}
+    SubscriptionStatus:
+      type: string
+      enum:
+        - pending
+        - trialing
+        - active
+        - canceled
+    IdentifyCallResponse:
+      type: object
+      properties:
+        status:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+servers:
+  - url: https://default.corrily.com/v1
+    description: Production
