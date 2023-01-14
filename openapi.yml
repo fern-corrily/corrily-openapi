@@ -1,8 +1,273 @@
 openapi: 3.0.1
 info:
   title: api
-  version: 0.0.7
+  version: 0.0.10
 paths:
+  /charges/:
+    post:
+      description: >-
+        Notify Corrily that one of your customers has initiated a one-time
+        transaction.
+      operationId: ChargeService.create
+      tags:
+        - Charge
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      summary: Create charge
+      security: &ref_0
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: The amount (price) of the subscription.
+                  example: 50
+                amount_refunded:
+                  type: number
+                  format: double
+                  description: >-
+                    The amount refunded by the charge. Only required if amount
+                    is undefined. Default: `0`
+                created:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the subscription was created. 
+
+                    This timestamp should represent when the subscription was
+                    initialized, regardless of the status of the subscription
+                    during the initialization. 
+
+                    It's rare to need to update `created` after initially
+                    setting it.
+                  example: 1662444537
+                currency:
+                  $ref: '#/components/schemas/Currency'
+                  description: >-
+                    The three-letter ([ISO
+                    4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes))
+                    currency code.
+                country:
+                  type: string
+                  description: User's two-letter ISO3166 country code.
+                origin:
+                  $ref: '#/components/schemas/Integration'
+                  description: The payment gateway that handled the charge.
+                origin_id:
+                  $ref: '#/components/schemas/OriginId'
+                  description: >-
+                    A unique identifier for the charge. This can be the ID that
+                    the payment gateway assigned to the charge.
+                product:
+                  type: string
+                  description: >
+                    A product ID string or a payment gateway integration
+                    object. 
+
+                    Product IDs are created by Corrily when you set up your
+                    Corrily account. 
+
+                    Email [support@corrily.com](mailto:support@corrily.com) if
+                    you don't know them. 
+
+                    See the response of the [calculate
+                    price](https://docs.corrily.com/calculate-price) endpoint
+                    for an example of the structure of integration objects.
+                  example: monthly
+                status:
+                  $ref: '#/components/schemas/ChargeStatus'
+                  description: The status of the charge.
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+                metadata:
+                  description: >-
+                    Free form key-value data. Metadata is useful for storing
+                    additional, structured information for a charge.
+              required:
+                - amount
+                - created
+                - currency
+                - origin
+                - origin_id
+                - product
+                - user_id
+            examples:
+              Example1:
+                value:
+                  amount: 50
+                  amount_refunded: 0
+                  created: 1662444537
+                  currency: USD
+                  country: US
+                  origin: stripe
+                  origin_id: sub_JaHy9Kl6ZMLvId
+                  product: monthly
+                  status: succeeded
+                  user_id: test_user
+  /charges/{user_id}/{origin}/{origin_id}:
+    get:
+      operationId: ChargeService.get
+      tags:
+        - Charge
+      parameters:
+        - name: origin
+          in: path
+          description: The payment gateway that handled the subscription.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Integration'
+        - name: origin_id
+          in: path
+          description: >
+            A unique identifier for the subscription. 
+
+            This can be the ID that the payment gateway assigned to the
+            subscription.
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: >-
+            The [User ID](https://docs.corrily.com/users/user-characteristics)
+            that you provided when you [created the
+            subscription](https://docs.corrily.com/api-reference/create-subscription).
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetChargeResponse'
+      summary: Get charge
+      security: *ref_0
+    post:
+      operationId: ChargeService.update
+      tags:
+        - Charge
+      parameters:
+        - name: origin
+          in: path
+          description: The payment gateway that handled the subscription.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Integration'
+        - name: origin_id
+          in: path
+          description: >
+            A unique identifier for the subscription. 
+
+            This can be the ID that the payment gateway assigned to the
+            subscription.
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: >-
+            The [User ID](https://docs.corrily.com/users/user-characteristics)
+            that you provided when you [created the
+            subscription](https://docs.corrily.com/api-reference/create-subscription).
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateChargeResponse'
+      summary: Update charge
+      security: *ref_0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  format: double
+                  description: The amount (price) of the subscription.
+                created:
+                  type: integer
+                  description: >
+                    A 10-digit (seconds) [UNIX
+                    timestamp](https://en.wikipedia.org/wiki/Unix_time)
+                    indicating when the subscription was created. 
+
+                    This timestamp should represent when the subscription was
+                    initialized, regardless of the status of the subscription
+                    during the initialization. 
+
+                    It's rare to need to update `created` after initially
+                    setting it.
+                currency:
+                  $ref: '#/components/schemas/Currency'
+                  description: >-
+                    The three-letter ([ISO
+                    4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes))
+                    currency code.
+                status:
+                  $ref: '#/components/schemas/ChargeStatus'
+                  description: The status of the charge.
+                user_id:
+                  $ref: '#/components/schemas/UserId'
+                metadata:
+                  description: >-
+                    Free form key-value data. Metadata is useful for storing
+                    additional, structured information for a charge.
+              required:
+                - user_id
+    delete:
+      operationId: ChargeService.delete
+      tags:
+        - Charge
+      parameters:
+        - name: origin
+          in: path
+          description: The payment gateway that handled the subscription.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Integration'
+        - name: origin_id
+          in: path
+          description: >
+            A unique identifier for the subscription. 
+
+            This can be the ID that the payment gateway assigned to the
+            subscription.
+          required: true
+          schema:
+            type: string
+        - name: user_id
+          in: path
+          description: >-
+            The [User ID](https://docs.corrily.com/users/user-characteristics)
+            that you provided when you [created the
+            subscription](https://docs.corrily.com/api-reference/create-subscription).
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+      summary: Delete charge
+      security: *ref_0
   /prices/:
     post:
       description: >
@@ -117,8 +382,7 @@ paths:
                     variants:
                       experimented_on: true
       summary: Calculate price
-      security: &ref_0
-        - BearerAuth: []
+      security: *ref_0
       requestBody:
         required: true
         content:
@@ -253,6 +517,75 @@ paths:
                   currency: USD
                   override: true
                   run_experiment: true
+  /products/:
+    post:
+      description: Create a Corrily product using an API instead of our dashboard.
+      operationId: ProductService.create
+      tags:
+        - Product
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      summary: Create product
+      security: *ref_0
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                api_id:
+                  $ref: '#/components/schemas/ApiId'
+                  description: >-
+                    The product identifier you will be calling this product with
+                    using [Corrily's price
+                    endpoint](https://docs.corrily.com/api-reference/calculate-price).
+                name:
+                  type: string
+                  description: The name of the product. Must be unique.
+                base_px:
+                  type: number
+                  format: double
+                  description: The base price of the product in `USD`.
+                interval:
+                  $ref: '#/components/schemas/Interval'
+                  description: >-
+                    A string value denoting how often to bill for a
+                    subscription.
+                interval_count:
+                  type: integer
+                  description: >-
+                    An integer denoting how many intervals to bill for the. A
+                    monthly product would have `month` as interval and `1` as
+                    interval counts, etc. One time products should have an
+                    interval count of `1`.
+                country_prices:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/CountryPrice'
+                  description: A list of one ore more of the below country price object.
+                integrations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ProductIntegration'
+                  description: >
+                    A list of one or more of the below integration price
+                    objects. 
+
+                    Not required in the case of a custom integration using the
+                    [Subscription](https://docs.corrily.com/api-reference/create-subscription)
+                    and
+                    [Charge](https://docs.corrily.com/api-reference/create-subscription)
+                    endpoints where Corrily product IDs are passed to alert us
+                    of payment gateway revenue activity.
+              required:
+                - api_id
+                - name
+                - base_px
+                - interval
+                - interval_count
   /subscriptions/:
     post:
       description: Notify Corrily that one of your customers has started a subscription.
@@ -321,16 +654,15 @@ paths:
                     indicating when the subscription was created. This timestamp
                     should represent when the subscription was initialized,
                     regardless of the status of the subscription during the
-                    initialization. It's rare to need to update created after
+                    initialization. It's rare to need to update `created` after
                     initially setting it.
                   example: 0
                 currency:
-                  type: string
+                  $ref: '#/components/schemas/Currency'
                   description: >-
                     The three-letter
                     ([ISO4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes))
                     currency code.
-                  example: USD
                 origin:
                   $ref: '#/components/schemas/Integration'
                   description: The payment gateway that handled the subscription.
@@ -610,10 +942,10 @@ paths:
                     initialized, regardless of the status of the subscription
                     during the initialization. 
 
-                    It's rare to need to update created after initially setting
-                    it.
+                    It's rare to need to update `created` after initially
+                    setting it.
                 currency:
-                  type: string
+                  $ref: '#/components/schemas/Currency'
                   description: >-
                     The three-letter ([ISO
                     4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes))
@@ -650,6 +982,84 @@ paths:
                   status: active
                   trial_start: 0
                   trial_end: 0
+    delete:
+      description: Delete Corrily's record of a subscription.
+      operationId: SubscriptionService.delete
+      tags:
+        - Subscription
+      parameters:
+        - name: origin
+          in: path
+          description: The payment gateway that handled the subscription.
+          required: true
+          schema:
+            $ref: '#/components/schemas/Integration'
+          examples:
+            Example1:
+              value: paypal
+        - name: origin_id
+          in: path
+          description: >
+            A unique identifier for the subscription. 
+
+            This can be the ID that the payment gateway assigned to the
+            subscription.
+          required: true
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: 573917313bb
+        - name: user_id
+          in: path
+          description: >-
+            The [User ID](https://docs.corrily.com/users/user-characteristics)
+            that you provided when you [created the
+            subscription](https://docs.corrily.com/api-reference/create-subscription).
+          required: true
+          schema:
+            type: string
+          examples:
+            Example1:
+              value: user123
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteSubscriptionResponse'
+              examples:
+                Example1:
+                  value:
+                    properties:
+                      message: >-
+                        [dev=False] subscription record
+                        97#user123#stripe#origin789 was written.
+                      success: true
+                      record:
+                        origin: stripe
+                        type: subscription
+                        latest_event_timestamp: 1628549872
+                        latest_event_id: corrily_evt_1628549872
+                        corrily_product_id: 122
+                        org_id: 97
+                        origin_id: origin789
+                        user_id: user123
+                        created: 1628548983
+                        interval: month
+                        interval_count: 1
+                        status: active
+                        cancel_at: null
+                        canceled_at: null
+                        trial_start: null
+                        trial_end: null
+                        currency: null
+                        amount: null
+                        amount_usd: null
+                        amount_usd_monthly: null
+      summary: Delete subscription
+      security: *ref_0
   /identify/:
     post:
       description: |
@@ -720,11 +1130,23 @@ paths:
                     source: youtube
 components:
   schemas:
+    ChargeStatus:
+      type: string
+      enum:
+        - pending
+        - succeeded
+        - failed
+    GetChargeResponse: {}
+    UpdateChargeResponse: {}
     UserId:
       type: string
     ProductId:
       type: string
     CouponId:
+      type: string
+    OriginId:
+      type: string
+    ApiId:
       type: string
     CountryPrice:
       type: object
@@ -984,9 +1406,121 @@ components:
 
             For example, if the baseline price is 34 and the experimental price
             is 19, the discount is about 44%: 1 - (19 ÷ 34)) × 100
+    ProductIntegration:
+      oneOf:
+        - type: object
+          allOf:
+            - $ref: '#/components/schemas/StripeIntegration'
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - stripe
+        - type: object
+          allOf:
+            - $ref: '#/components/schemas/StripeWithIntervalIntegration'
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - stripe_with_interval
+        - type: object
+          allOf:
+            - $ref: '#/components/schemas/ChargebeeIntegration'
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - chargebee
+        - type: object
+          allOf:
+            - $ref: '#/components/schemas/RecurlyIntegration'
+            - type: object
+              properties:
+                type:
+                  type: string
+                  enum:
+                    - recurly
+    StripeIntegration:
+      type: object
+      properties:
+        stripe_product_id:
+          type: string
+          description: >-
+            The matching [Stripe product
+            ID](https://stripe.com/docs/api/products/object#product_object-id)
+      required:
+        - stripe_product_id
+    StripeWithIntervalIntegration:
+      type: object
+      properties:
+        stripe_product_id:
+          type: string
+          description: >-
+            The matching [Stripe product
+            ID](https://stripe.com/docs/api/products/object#product_object-id)
+        interval:
+          $ref: '#/components/schemas/StripeInterval'
+          description: >
+            The frequency at which a subscription is billed. 
+
+            One of `day`, `week`, `month` or `year`. 
+
+            Sometimes Stripe products actually encompass more than what Corrily
+            would consider a product. For example, the Stripe product for a
+            company's "Pro Plan" might have two [Price
+            objects](https://stripe.com/docs/api/prices/object) one for the
+            monthly version of the plan, the other for its annual version.
+            Meanwhile, Corrily would consider these to be two distinct products
+            `pro_monthly` and `pro_annual`. 
+
+            To capture such differences you can pass a `stripe_with_interval`
+            integration object which can help separate such cases.
+        interval_count:
+          type: integer
+          description: >-
+            The number of intervals (specified in the interval attribute)
+            between subscription billings. For example, interval=month and
+            interval_count=3 bills every 3 months.
+      required:
+        - stripe_product_id
+        - interval
+        - interval_count
+    StripeInterval:
+      type: string
+      enum:
+        - day
+        - week
+        - month
+        - year
+      description: The frequency at which a subscription is billed.
+    ChargebeeIntegration:
+      type: object
+      properties:
+        chargebee_plan_id:
+          type: string
+          description: >-
+            The matching [Chargebee plan
+            ID](https://apidocs.chargebee.com/docs/api/plans?prod_cat_ver=1#plan_id).
+      required:
+        - chargebee_plan_id
+    RecurlyIntegration:
+      type: object
+      properties:
+        recurly_plan_id:
+          type: string
+          description: >-
+            The matching [Recurly plan
+            ID](https://developers.recurly.com/api/v2021-02-25/index.html#operation/create_plan).
+      required:
+        - recurly_plan_id
     CreateSubscriptionResponse: {}
     GetSubscriptionResponse: {}
     UpdateSubscriptionResponse: {}
+    DeleteSubscriptionResponse: {}
     SubscriptionStatus:
       type: string
       enum:
@@ -1004,5 +1538,5 @@ components:
       type: http
       scheme: bearer
 servers:
-  - url: https://default.corrily.com/mainapi/v1
+  - url: https://default.corrily.com/v1
     description: Production
