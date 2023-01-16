@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
-  title: api
-  version: 0.0.10
+  title: Corrily API
+  version: 0.0.11
 paths:
   /charges/:
     post:
@@ -503,6 +503,8 @@ paths:
                     example `{"product_id_1": "coupon_id_1"}`. Multiple coupons
                     can be applied by a comma-delimited string, for example:
                     `{"product_id_1": "coupon_id_1,coupon_id2"}`
+              required:
+                - products
             examples:
               Example1:
                 value:
