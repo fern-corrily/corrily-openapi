@@ -1,6 +1,6 @@
-# Corrily API OpenAPI Description
+# Corrily API OpenAPI spec
 
-This repository contains the [OpenAPI description](/openapi.yml) for https://docs.corrily.com/.
+This repository contains the [OpenAPI spec](/openapi.yml) for https://docs.corrily.com/.
 
 ## What is OpenAPI?
 
