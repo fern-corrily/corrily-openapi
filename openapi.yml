@@ -1,14 +1,14 @@
 openapi: 3.0.1
 info:
   title: Corrily API
-  version: 0.0.12
+  version: ''
 paths:
-  /charges/:
+  /charges:
     post:
       description: >-
         Notify Corrily that one of your customers has initiated a one-time
         transaction.
-      operationId: ChargeService.create
+      operationId: chargeService.create
       tags:
         - Charge
       parameters: []
@@ -115,7 +115,7 @@ paths:
                   user_id: test_user
   /charges/{user_id}/{origin}/{origin_id}:
     get:
-      operationId: ChargeService.get
+      operationId: chargeService.get
       tags:
         - Charge
       parameters:
@@ -154,7 +154,7 @@ paths:
       summary: Get charge
       security: *ref_0
     post:
-      operationId: ChargeService.update
+      operationId: chargeService.update
       tags:
         - Charge
       parameters:
@@ -234,7 +234,7 @@ paths:
               required:
                 - user_id
     delete:
-      operationId: ChargeService.delete
+      operationId: chargeService.delete
       tags:
         - Charge
       parameters:
@@ -268,7 +268,7 @@ paths:
           description: ''
       summary: Delete charge
       security: *ref_0
-  /prices/:
+  /prices:
     post:
       description: >
         Calculate a localized or optimized price for your service or product
@@ -314,7 +314,7 @@ paths:
           - Any user features that you have provided
           - The outcomes of previous price experiments
           - The upper and lower bounds that you defined in the Corrily Dashboard
-      operationId: PriceService.calculate
+      operationId: priceService.calculate
       tags:
         - Price
       parameters: []
@@ -519,10 +519,10 @@ paths:
                   currency: USD
                   override: true
                   run_experiment: true
-  /products/:
+  /products:
     post:
       description: Create a Corrily product using an API instead of our dashboard.
-      operationId: ProductService.create
+      operationId: productService.create
       tags:
         - Product
       parameters: []
@@ -588,10 +588,10 @@ paths:
                 - base_px
                 - interval
                 - interval_count
-  /subscriptions/:
+  /subscriptions:
     post:
       description: Notify Corrily that one of your customers has started a subscription.
-      operationId: SubscriptionService.create
+      operationId: subscriptionService.create
       tags:
         - Subscription
       parameters: []
@@ -762,7 +762,7 @@ paths:
   /subscriptions/{user_id}/{origin}/{origin_id}:
     get:
       description: Retrieve the details of a single subscription for a single customer.
-      operationId: SubscriptionService.get
+      operationId: subscriptionService.get
       tags:
         - Subscription
       parameters:
@@ -828,7 +828,7 @@ paths:
       security: *ref_0
     post:
       description: Notify Corrily that a subscription has changed.
-      operationId: SubscriptionService.update
+      operationId: subscriptionService.update
       tags:
         - Subscription
       parameters:
@@ -986,7 +986,7 @@ paths:
                   trial_end: 0
     delete:
       description: Delete Corrily's record of a subscription.
-      operationId: SubscriptionService.delete
+      operationId: subscriptionService.delete
       tags:
         - Subscription
       parameters:
@@ -1062,7 +1062,7 @@ paths:
                         amount_usd_monthly: null
       summary: Delete subscription
       security: *ref_0
-  /identify/:
+  /identify:
     post:
       description: |
         Link IPs to users and update user features.
@@ -1070,7 +1070,7 @@ paths:
           1. It can be used to pass user-level features after (or before) a price has already been tied to them using the [main price endpoint](https://docs.corrily.com/api-reference/api-reference/calculate-price).
           2. It can be used to link IPs to user_ids so that prices persist to a user as they see a price -> login in -> check the price again.
           3. It is used during mobile integrations to inform Corrily about original [Apple](https://docs.corrily.com/integrations/02_apple-iap-integration) and [Google](https://docs.corrily.com/integrations/03_google-iap-integration) purchase IDs.
-      operationId: UserService.identify
+      operationId: userService.identify
       tags:
         - User
       parameters: []
